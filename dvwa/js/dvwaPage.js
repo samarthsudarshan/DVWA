@@ -38,8 +38,39 @@ function confirmClearGuestbook() {
 	return confirm("Are you sure you want to clear the guestbook?");
 }
 
+// Centralized cookie management function for consistent security settings
+function setCookie(name, value, options = null) {
+    options = {
+        path: '/',
+        Secure: true,
+        SameSite: 'Strict',
+        domain: window.location.hostname, // Added domain restriction
+        ...options
+    };
+    
+    let cookieString = encodeURIComponent(name) + '=' + encodeURIComponent(value);
+    for (let optionKey in options) {
+        cookieString += '; ' + optionKey;
+        const optionValue = options[optionKey];
+        if (optionValue !== true) {
+            cookieString += '=' + optionValue;
+        }
+    }
+    document.cookie = cookieString;
+}
+
 function toggleTheme() {
     document.body.classList.toggle('dark');
     const theme = document.body.classList.contains('dark') ? 'dark' : 'light';
-    document.cookie = "theme=" + theme + "; path=/";
+    
+    // Added cookie expiration of 6 months
+    const expiration = new Date();
+    expiration.setMonth(expiration.getMonth() + 6);
+    
+    // Using the centralized cookie function with all security enhancements
+    setCookie('theme', theme, {
+        expires: expiration.toUTCString(),
+        // HttpOnly flag is intentionally not set as JS needs to access this cookie
+    });
 }
+
