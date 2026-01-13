@@ -40,22 +40,44 @@ function confirmClearGuestbook() {
 
 // Centralized cookie management function for consistent security settings
 function setCookie(name, value, options = null) {
-    options = {
+    // Force security flags regardless of passed options
+    const secureOptions = {
         path: '/',
-        Secure: true,
-        SameSite: 'Strict',
-        domain: window.location.hostname, // Added domain restriction
-        ...options
+        domain: window.location.hostname,
+        maxAge: 3600, // Added: Default 1 hour expiration
+        ...options,
+        // Always enforce these security settings last to prevent overrides
+        Secure: window.location.protocol === 'https:', // Added: Verify HTTPS before setting Secure flag
+        HttpOnly: true, // Added: Prevent client-side script access to cookies
+        // Only allow 'Strict' or 'Lax' as SameSite values
+        SameSite: options && options.SameSite && ['Strict', 'Lax'].includes(options.SameSite) ? options.SameSite : 'Strict',
+        // Added: Support for Partitioned attribute when needed
+        Partitioned: options?.Partitioned || false
     };
     
     let cookieString = encodeURIComponent(name) + '=' + encodeURIComponent(value);
-    for (let optionKey in options) {
+    for (let optionKey in secureOptions) {
         cookieString += '; ' + optionKey;
-        const optionValue = options[optionKey];
+        const optionValue = secureOptions[optionKey];
         if (optionValue !== true) {
             cookieString += '=' + optionValue;
         }
     }
+    
+    // Added: Cookie size validation
+    if (cookieString.length > 4096) {
+        console.warn(`Cookie ${name} exceeds recommended size limit`);
+    }
+    
+    // Added: Error handling
+    try {
+        document.cookie = cookieString;
+    } catch (e) {
+        console.error(`Failed to set cookie ${name}:`, e);
+        // Consider reporting to monitoring system
+    }
+}
+
     document.cookie = cookieString;
 }
 
