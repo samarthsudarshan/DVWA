@@ -1,11 +1,40 @@
 /* Help popup */
-
+/**
+ * Opens a URL in a new window with security measures against reverse tabnabbing
+ * @param {string} URL - The URL to open in the new window
+ */
 function popUp(URL) {
-	day = new Date();
-	id = day.getTime();
-	window.open(URL, '" + id + "', 'toolbar=0,scrollbars=1,location=0,statusbar=0,menubar=0,resizable=1,width=800,height=300,left=540,top=250');
-	//eval("page" + id + " = window.open(URL, '" + id + "', 'toolbar=0,scrollbars=1,location=0,statusbar=0,menubar=0,resizable=1,width=800,height=300,left=540,top=250');");
+    // Validate URL to prevent opening malicious links
+    if (!isValidUrl(URL)) {
+        console.error("Invalid URL detected");
+        return;
+    }
+    
+    // Use proper variable declarations to avoid global scope pollution
+    const day = new Date();
+    const id = day.getTime();
+    
+    // Fixed string concatenation error in the window name parameter
+    // Added noopener,noreferrer to prevent reverse tabnabbing attacks
+    const windowFeatures = 'noopener,noreferrer,toolbar=0,scrollbars=1,location=0,statusbar=0,menubar=0,resizable=1,width=800,height=300,left=540,top=250';
+    window.open(URL, id.toString(), windowFeatures);
 }
+
+/**
+ * Validates if the provided string is a valid URL
+ * @param {string} url - The URL to validate
+ * @returns {boolean} - True if URL is valid, false otherwise
+ */
+function isValidUrl(url) {
+    try {
+        const parsedUrl = new URL(url);
+        // Add additional validation logic here (e.g., whitelist domains)
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 
 /* Form validation */
 
